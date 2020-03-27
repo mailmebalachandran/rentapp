@@ -17,13 +17,14 @@ class Login extends Component{
         Password : this.state.Password
       }
       
-      await Axios.post("http://localhost:5000/userService/authenticateUser", {user : userDetails})
+      await Axios.post("http://localhost:5000/userService/authenticateUser", userDetails)
                  .then(res => {
                    console.log(res);
                    console.log(res.data);
                  })
                  .catch((err) => {
-                  console.log(err.message);
+                   console.log("In Catch"+err)
+                    console.log(err.response.data.message);
                  });
     }
 
