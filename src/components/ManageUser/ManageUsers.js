@@ -1,12 +1,10 @@
 import React, { Component } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import * as Constants from '../utils/Constants';
 import Label from '../common/Label';
 import CardHeader from '../common/CardHeader';
 import Textbox from '../common/Textbox';
 import Button from '../common/Button';
-import Axios from 'axios';
 
 class ManageUsers extends Component {    
     state= {
@@ -33,7 +31,6 @@ class ManageUsers extends Component {
 
     submitHandler = (event) =>{
         event.preventDefault();    
-        toast(Constants.INVALID_FIRSTNAME);
     }
 render(){
     return (

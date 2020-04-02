@@ -1,8 +1,15 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
 import config from "../../config"
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
+
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from 'react-toastify';
+
+import Textbox from '../common/Textbox';
+import Button from '../common/Button';
+import GroupIcon from '../common/GroupIcon';
+import Row from '../common/Row';
 
 class Login extends Component {
   state = {
@@ -14,91 +21,64 @@ class Login extends Component {
 
   handleSubmit = async (event) => {
     event.preventDefault();
-
     const userDetails = {
       UserName: this.state.UserName,
       Password: this.state.Password
     }
-
+    this.props.history.push('/dashboard');
     await Axios.post(config.urls.USER_SERVICE + "authenticateUser", userDetails)
       .then(res => {
-        this.setState({
-          isError: false
-        })
-        localStorage.setItem("userContext", JSON.stringify(res.data))
+        localStorage.setItem("userDetails", JSON.stringify(res.data));
+        this.props.history.push('/dashboard');
       })
       .catch((err) => {
-        this.setState({
-          isError: true,
-          errorMessage: err.response.data.message
-        })
+        if(err.response != undefined && err.response.status === 401)
+          toast(err.response.data.message);
+        //else
+         // this.props.history.push('/Error');
       });
   }
 
-  handleChange = (e) => {
-    this.setState({ [e.target.name]: e.target.value })
-  }
-
-  renderError = () => {
-
-  }
-
-
   render() {
     return (
+      <div>
+        <ToastContainer />
       <div className="hold-transition login-page">
         <div className="login-box">
           <div className="login-logo">
-            <a><b>Admin</b>LTE</a>
+            <a><b>Rent</b>App</a>
           </div>
           <div className="card">
             <div className="card-body login-card-body">
               <p className="login-box-msg">Sign In</p>
               <div className="input-group mb-3">
-                {this.state.isError ?
-                  (
-                    <p className="alert alert-danger">{this.state.errorMessage}</p>
-                  ) : ""}
-              </div>
-
-              <div className="input-group mb-3">
-                <input type="email"
-                  className="form-control"
-                  placeholder="Email"
-                  name="UserName"
-                  onChange={this.handleChange}
-                />
-                <div className="input-group-append">
-                  <div className="input-group-text">
-                    <FontAwesomeIcon icon={faEnvelope} />
-                  </div>
-                </div>
+                <Textbox typeName="email" 
+                         classValue="form-control"
+                         placeholderName= "Email"
+                         changed = {(event) => {
+                          this.setState({UserName : event.target.value})}} />
+                <GroupIcon iconValue={faEnvelope} />
               </div>
               <div className="input-group mb-3">
-                <input type="password"
-                  className="form-control"
-                  placeholder="Password"
-                  name="Password"
-                  onChange={this.handleChange}
-                />
-                <div className="input-group-append">
-                  <div className="input-group-text">
-                    <FontAwesomeIcon icon={faLock} />
-                  </div>
-                </div>
+                <Textbox typeName="password"
+                         classValue="form-control"
+                         placeholderName="Password"
+                         changed={(event) => {
+                          this.setState({Password : event.target.value})}}  />
+                <GroupIcon iconValue={faLock} />
               </div>
-              <div className="row">
+              <Row>
                 <div className="col-12">
-                  <button type="submit"
-                    className="btn btn-primary btn-block"
-                    onClick={this.handleSubmit}>
-                    Sign In
-                </button>
+                  <Button typeName="submit"
+                          classValue="btn btn-primary btn-block"
+                          click={this.handleSubmit}
+                          value="Sign In" />
                 </div>
-              </div>
+              </Row>
             </div>
           </div>
         </div>
+      </div>
       </div>
     );
   }
