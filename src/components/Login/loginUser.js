@@ -25,14 +25,14 @@ class Login extends Component {
       UserName: this.state.UserName,
       Password: this.state.Password
     }
-    this.props.history.push('/dashboard');
     await Axios.post(config.urls.USER_SERVICE + "authenticateUser", userDetails)
       .then(res => {
-        localStorage.setItem("userDetails", JSON.stringify(res.data));
+        localStorage.setItem("userAuth", JSON.stringify(res.data));
         this.props.history.push('/dashboard');
       })
       .catch((err) => {
-        if(err.response != undefined && err.response.status === 401)
+        console.log(err.response);
+        if(err.response != undefined && err.response.status === 400)
           toast(err.response.data.message);
         //else
          // this.props.history.push('/Error');

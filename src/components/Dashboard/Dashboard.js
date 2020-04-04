@@ -9,7 +9,6 @@ class DashBoard extends Component{
             <div>
                 <TopMenu />
                 <SideMenu />
-                <ManageUsers />
             </div>
         );
     }
