@@ -34,7 +34,6 @@ class SideMenu extends Component{
   }
 
   componentDidMount = async () =>{
-    console.log("Component Did Mount Hitted");
     let userAuth = { "access_token" : JSON.parse(localStorage.getItem("userAuth")).access_token};
     let isAuthorised = this.decodeToken(userAuth);
     if(!isAuthorised)

@@ -32,7 +32,7 @@ class Login extends Component {
       })
       .catch((err) => {
         console.log(err.response);
-        if(err.response != undefined && err.response.status === 400)
+        if(err.response !== undefined && err.response.status === 400)
           toast(err.response.data.message);
         //else
          // this.props.history.push('/Error');
@@ -46,7 +46,7 @@ class Login extends Component {
       <div className="hold-transition login-page">
         <div className="login-box">
           <div className="login-logo">
-            <a><b>Rent</b>App</a>
+            <a href="/"><b>Rent</b>App</a>
           </div>
           <div className="card">
             <div className="card-body login-card-body">
