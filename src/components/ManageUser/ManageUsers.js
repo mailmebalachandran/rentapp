@@ -17,24 +17,29 @@ import TableBody from "../common/TableBody";
 import { isAuthorized } from "../../utils";
 
 class ManageUsers extends Component {
-  state = {
-    headerData: "Manage Users",
-    FirstName: "",
-    MiddleName: "",
-    LastName: "",
-    PhoneNumber: "",
-    EmailId: "",
-    UserName: "",
-    Password: "",
-    ConfirmPassword: "",
-    IsAddUser: false,
-    UserButtonValue: "Add User",
-    headerDataViewData: "Users List",
-    UserData: [],
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      headerData: "Manage Users",
+      _id: "",
+      FirstName: "",
+      MiddleName: "",
+      LastName: "",
+      PhoneNumber: "",
+      EmailId: "",
+      UserName: "",
+      Password: "",
+      ConfirmPassword: "",
+      IsAddUser: false,
+      UserButtonValue: "Add User",
+      headerDataViewData: "Users List",
+      UserData: [],
+      IsAdd: true,
+    };
+  }
 
-  componentDidMount = async () => {
-    let userAuth ;
+  getUsers = async () => {
+    let userAuth;
     let isAuthorised = await isAuthorized();
     if (isAuthorised) {
       userAuth = {
@@ -47,12 +52,16 @@ class ManageUsers extends Component {
           this.setState({ userData: res.data });
         })
         .catch((err) => {
-          if (err.response != undefined && err.response.status === 400)
+          if (err.response !== undefined && err.response.status === 400)
             toast(err.response.data.message);
           //else
           // this.props.history.push('/Error');
         });
     }
+  }
+
+  componentDidMount = async () => {
+    this.getUsers();
   };
 
   phoneNumberChanged = (event) => {
@@ -64,8 +73,105 @@ class ManageUsers extends Component {
     }
   };
 
-  submitHandler = (event) => {
+  submitHandler = async (event) => {
     event.preventDefault();
+    if (this.state.Password !== this.state.ConfirmPassword) {
+      toast("Password and Confirm Password should be same");
+      return;
+    }
+    let userAuth;
+    let isAuthorised = await isAuthorized();
+    if (isAuthorised) {
+      userAuth = {
+        access_token: JSON.parse(localStorage.getItem("userAuth")).access_token,
+      };
+      Axios.defaults.headers.common["Authorization"] =
+        "bearer " + userAuth.access_token;
+      if (!this.state.IsAdd) {
+        let userDetails = {
+          _id: this.state._id,
+          FirstName: this.state.FirstName,
+          MiddleName: this.state.MiddleName,
+          LastName: this.state.LastName,
+          PhoneNumber: this.state.PhoneNumber,
+          EmailId: this.state.EmailId,
+          UserName: this.state.UserName,
+          Password: this.state.Password,
+        };
+
+        await Axios.put(config.urls.USER_SERVICE + "updateUser", userDetails)
+          .then((res) => {
+            if (res.data !== null || res.data !== undefined) {
+              if (res.data._id !== " " && res.data._id !== undefined) {
+                this.setState({
+                  IsAddUser: false,
+                  UserButtonValue: "Add User",
+                  _id: "",
+                  FirstName: "",
+                  MiddleName: "",
+                  LastName: "",
+                  PhoneNumber: "",
+                  EmailId: "",
+                  UserName: "",
+                  Password: "",
+                  ConfirmPassword: "",
+                  IsAdd: true,
+                });
+                this.getUsers();
+              } else {
+                toast("Error in updating the user");
+              }
+            }
+          })
+          .catch((err) => {
+            if (err.response.status === 400) {
+              toast(err.response.data.message);
+            }
+          });
+      } 
+      else 
+      {
+        let userDetails = {
+          FirstName: this.state.FirstName,
+          MiddleName: this.state.MiddleName,
+          LastName: this.state.LastName,
+          PhoneNumber: this.state.PhoneNumber,
+          EmailId: this.state.EmailId,
+          UserName: this.state.UserName,
+          Password: this.state.Password,
+        };
+
+        await Axios.post(config.urls.USER_SERVICE + "saveUser", userDetails)
+          .then((res) => {
+            if (res.data !== null || res.data !== undefined) {
+              if (res.data._id !== " " && res.data._id !== undefined) {
+                this.setState({
+                  IsAddUser: false,
+                  UserButtonValue: "Add User",
+                  _id: "",
+                  FirstName: "",
+                  MiddleName: "",
+                  LastName: "",
+                  PhoneNumber: "",
+                  EmailId: "",
+                  UserName: "",
+                  Password: "",
+                  ConfirmPassword: "",
+                  IsAdd: true,
+                });
+                this.getUsers();
+              } else {
+                toast("Error in updating the user");
+              }
+            }
+          })
+          .catch((err) => {
+            if (err.response.status === 400) {
+              toast(err.response.data.message);
+            }
+          });
+      }
+    }
   };
 
   addHandler = () => {
@@ -75,12 +181,8 @@ class ManageUsers extends Component {
   };
 
   onEditClickHandler = async (data) => {
-    console.log(data._id);
     let userAuth;
     let isAuthorised = await isAuthorized();
-    let userDetail = {
-      _id : data._id
-    }
 
     if (isAuthorised) {
       userAuth = {
@@ -88,15 +190,28 @@ class ManageUsers extends Component {
       };
       Axios.defaults.headers.common["Authorization"] =
         "bearer " + userAuth.access_token;
-      
-      await Axios.get(config.urls.USER_SERVICE + "getUser", userDetail)
+
+      await Axios.get(config.urls.USER_SERVICE + "getUser?_id=" + data._id)
         .then((res) => {
           if (res.data !== undefined || res.data !== null) {
-            console.log(res);
+            this.setState({
+              FirstName: res.data.FirstName,
+              _id: res.data._id,
+              MiddleName: res.data.MiddleName,
+              LastName: res.data.LastName,
+              PhoneNumber: res.data.PhoneNumber,
+              EmailId: res.data.EmailId,
+              UserName: res.data.UserName,
+              Password: res.data.Password,
+              ConfirmPassword: res.data.Password,
+              IsAddUser: true,
+              UserButtonValue: "View User",
+              IsAdd: false,
+            });
           }
         })
         .catch((err) => {
-          if (err.response != undefined && err.response.status === 400)
+          if (err.response !== undefined && err.response.status === 400)
             toast(err.response.data.message);
           //else
           // this.props.history.push('/Error');
@@ -105,6 +220,7 @@ class ManageUsers extends Component {
   };
 
   onDeleteClickHandler = () => {
+
   };
 
   render() {
@@ -126,7 +242,6 @@ class ManageUsers extends Component {
                     typeName="text"
                     classValue="form-control"
                     placeholderName="First Name"
-                    value={this.state.FirstName}
                     changed={(event) => {
                       this.setState({ FirstName: event.target.value });
                     }}
@@ -284,8 +399,12 @@ class ManageUsers extends Component {
                     />
                     <TableBody
                       tableData={this.state.userData}
-                      editClicked={(data) => {this.onEditClickHandler(data)}}
-                      deleteClicked={(data) => {this.onDeleteClickHandler(data)}}
+                      editClicked={(data) => {
+                        this.onEditClickHandler(data);
+                      }}
+                      deleteClicked={(data) => {
+                        this.onDeleteClickHandler(data);
+                      }}
                     />
                   </table>
                 </div>

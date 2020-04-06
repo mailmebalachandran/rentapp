@@ -17,9 +17,6 @@ export const authenticateWithRefreshToken = async (userAuth) => {
   export const decodeToken = async (userAuth) => {
     await Axios.post(config.urls.AUTH_SERVICE + "decodeToken", userAuth)
       .then((res) => {
-        if (res.data.user != null || res.data.user != undefined) {
-          this.setState({ UserName: res.data.user.FirstName });
-        }
         if (res.data.status === 403) {
           userAuth = {
             refresh_token: JSON.parse(localStorage.getItem("userAuth"))
@@ -28,7 +25,7 @@ export const authenticateWithRefreshToken = async (userAuth) => {
         }
       })
       .catch((err) => {
-        console.log(err.response);
+        console.log(err);
       });
   };
 

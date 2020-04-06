@@ -31,7 +31,6 @@ class Login extends Component {
         this.props.history.push('/dashboard');
       })
       .catch((err) => {
-        console.log(err.response);
         if(err.response !== undefined && err.response.status === 400)
           toast(err.response.data.message);
         //else

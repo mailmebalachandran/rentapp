@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link, Redirect } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Axios from 'axios';
 import config from "../../config";
 
@@ -21,7 +21,7 @@ class SideMenu extends Component{
   decodeToken = (userAuth) => {
     Axios.post(config.urls.AUTH_SERVICE + "decodeToken", userAuth)
          .then(res => {
-            if(res.data.user != null || res.data.user != undefined)
+            if(res.data.user !== null || res.data.user !== undefined)
             {
               this.setState({UserName:res.data.user.FirstName});
             }
@@ -50,13 +50,13 @@ class SideMenu extends Component{
             <div>
                 <aside className="main-sidebar sidebar-dark-primary elevation-4">
     <Link to='/dashboard' className="brand-link">
-      <img src={require('../../assets/images/Logo.png')} className="brand-image img-circle elevation-3" />
+      <img src={require('../../assets/images/Logo.png')} className="brand-image img-circle elevation-3" alt="logo" />
       <span className="brand-text font-weight-light">Rent Management</span>
     </Link>
     <div className="sidebar">
       <div className="user-panel mt-3 pb-3 mb-3 d-flex">
         <div className="image">
-          <img src={require('../../assets/images/user.jpg')} className="img-circle elevation-2"></img>
+          <img src={require('../../assets/images/user.jpg')} className="img-circle elevation-2" alt="User Logo"></img>
         </div>
         <div className="info">
         <a href="#" className="d-block">{this.state.UserName}</a>
