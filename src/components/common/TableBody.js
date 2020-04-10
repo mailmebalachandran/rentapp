@@ -25,7 +25,7 @@ class TableBody extends Component {
               <Button
                 typeName="button"
                 classValue="btn btn-block btn-danger"
-                click={this.props.deleteClicked(data)}
+                click={() => {this.props.deleteClicked(data)}}
                 value="Delete"
               />
             </td>

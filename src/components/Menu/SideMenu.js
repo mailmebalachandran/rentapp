@@ -73,13 +73,12 @@ class SideMenu extends Component{
             </Link>
           </li>
           <li className="nav-item">
-            <a href="pages/calendar.html" className="nav-link">
+            <Link to="/ManageExpenses" className="nav-link">
               <i className="nav-icon fas fa-calendar-alt"></i>
               <p>
                 Manage Expenses
-                <span className="badge badge-info right">2</span>
               </p>
-            </a>
+            </Link>
           </li>
           <li className="nav-item">
             <Link to='/' className="nav-link">

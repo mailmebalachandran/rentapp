@@ -4,12 +4,11 @@ import './index.css';
 import App from './App';
 import './assets/css/adminlte.css';
 import './assets/css/all.css';
+import './assets/css/bootstrap-duallistbox.min.css';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+    <App />,
   document.getElementById('root')
 );
 

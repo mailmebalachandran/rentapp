@@ -58,7 +58,7 @@ class ManageUsers extends Component {
           // this.props.history.push('/Error');
         });
     }
-  }
+  };
 
   componentDidMount = async () => {
     this.getUsers();
@@ -79,14 +79,8 @@ class ManageUsers extends Component {
       toast("Password and Confirm Password should be same");
       return;
     }
-    let userAuth;
     let isAuthorised = await isAuthorized();
     if (isAuthorised) {
-      userAuth = {
-        access_token: JSON.parse(localStorage.getItem("userAuth")).access_token,
-      };
-      Axios.defaults.headers.common["Authorization"] =
-        "bearer " + userAuth.access_token;
       if (!this.state.IsAdd) {
         let userDetails = {
           _id: this.state._id,
@@ -128,9 +122,7 @@ class ManageUsers extends Component {
               toast(err.response.data.message);
             }
           });
-      } 
-      else 
-      {
+      } else {
         let userDetails = {
           FirstName: this.state.FirstName,
           MiddleName: this.state.MiddleName,
@@ -161,7 +153,7 @@ class ManageUsers extends Component {
                 });
                 this.getUsers();
               } else {
-                toast("Error in updating the user");
+                toast("Error in saving the user");
               }
             }
           })
@@ -181,16 +173,8 @@ class ManageUsers extends Component {
   };
 
   onEditClickHandler = async (data) => {
-    let userAuth;
     let isAuthorised = await isAuthorized();
-
     if (isAuthorised) {
-      userAuth = {
-        access_token: JSON.parse(localStorage.getItem("userAuth")).access_token,
-      };
-      Axios.defaults.headers.common["Authorization"] =
-        "bearer " + userAuth.access_token;
-
       await Axios.get(config.urls.USER_SERVICE + "getUser?_id=" + data._id)
         .then((res) => {
           if (res.data !== undefined || res.data !== null) {
@@ -219,8 +203,49 @@ class ManageUsers extends Component {
     }
   };
 
-  onDeleteClickHandler = () => {
-
+  onDeleteClickHandler = async (data) => {
+    let isAuthorised = await isAuthorized();
+    if (isAuthorised) {
+      debugger
+      await Axios.delete(
+        config.urls.USER_SERVICE + "deleteUser?_id=" + data._id
+      )
+        .then((res) => {
+          console.log(res.data);
+          if (res.data !== null || res.data !== undefined) {
+            if (
+              res.data.message !== " " &&
+              res.data.message !== undefined &&
+              res.data.message.toString().toLowerCase() ===
+                "deleted successfully"
+            ) {
+              this.setState({
+                IsAddUser: false,
+                UserButtonValue: "Add User",
+                _id: "",
+                FirstName: "",
+                MiddleName: "",
+                LastName: "",
+                PhoneNumber: "",
+                EmailId: "",
+                UserName: "",
+                Password: "",
+                ConfirmPassword: "",
+                IsAdd: true,
+              });
+              this.getUsers();
+              toast(res.data.message);
+            } else {
+              toast("Error in deleting the user");
+            }
+          }
+        })
+        .catch((err) => {
+          if (err.response.status === 400) {
+            toast(err.response.data.message);
+          }
+        });
+    }
   };
 
   render() {

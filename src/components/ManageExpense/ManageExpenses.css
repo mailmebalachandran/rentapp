@@ -1,0 +1,11 @@
+.divBody {
+    border: 1px solid black;
+    border-radius: 5px;
+    height: 200px;
+    background-color: white;
+    margin-left: 10px;
+}
+
+.buttonCenter{
+    margin-left:10px
+}

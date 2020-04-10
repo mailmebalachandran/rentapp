@@ -48,5 +48,7 @@ export const isAuthorized = async () => {
       userAuth = {
         access_token: JSON.parse(localStorage.getItem("userAuth")).access_token,
       };
+      Axios.defaults.headers.common["Authorization"] =
+        "bearer " + userAuth.access_token;
       return true;
 }
