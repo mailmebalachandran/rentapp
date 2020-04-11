@@ -109,7 +109,7 @@ class ManageUsers extends Component {
                   UserName: "",
                   Password: "",
                   ConfirmPassword: "",
-                  IsAdd: true,
+                  IsAdd: true
                 });
                 this.getUsers();
               } else {
@@ -190,7 +190,7 @@ class ManageUsers extends Component {
               ConfirmPassword: res.data.Password,
               IsAddUser: true,
               UserButtonValue: "View User",
-              IsAdd: false,
+              IsAdd: false
             });
           }
         })
@@ -211,7 +211,6 @@ class ManageUsers extends Component {
         config.urls.USER_SERVICE + "deleteUser?_id=" + data._id
       )
         .then((res) => {
-          console.log(res.data);
           if (res.data !== null || res.data !== undefined) {
             if (
               res.data.message !== " " &&
@@ -424,6 +423,7 @@ class ManageUsers extends Component {
                     />
                     <TableBody
                       tableData={this.state.userData}
+                      tableValue="Manage User"
                       editClicked={(data) => {
                         this.onEditClickHandler(data);
                       }}

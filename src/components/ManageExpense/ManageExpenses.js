@@ -15,10 +15,14 @@ import Label from "../common/Label";
 import CardHeader from "../common/CardHeader";
 import DropDown from "../common/DropDown";
 import Checkbox from "../common/Checkbox";
+import RadioButton from "../common/RadioButton";
+import TableHeader from "../common/TableHeader";
+import TableBody from "../common/TableBody";
 
 class ManageExpenses extends Component {
   state = {
     headerData: "Manage Expenses",
+    _id: "",
     categoryData: [],
     spentByUserData: [],
     userLeftData: [],
@@ -29,7 +33,12 @@ class ManageExpenses extends Component {
     Category: "0",
     SpentBy: "0",
     Amount: 0,
-    isDefaultExpense : false
+    isDefaultExpense: false,
+    IsAddUser: false,
+    UserButtonValue: "Add Expense",
+    headerDataViewData: "Expense Details",
+    expenseData: [],
+    IsAdd: true
   };
   getCategories = async () => {
     let isAuthorised = await isAuthorized();
@@ -79,9 +88,28 @@ class ManageExpenses extends Component {
     }
   };
 
+  getExpenses = async () => {
+    let isAuthorised = await isAuthorized();
+    if (isAuthorised) {
+      await Axios.get(config.urls.EXPENSE_SERVICE + "getExpenses")
+        .then((res) => {
+          if (res.data !== null || res.data !== undefined) {
+            this.setState({
+              expenseData: res.data,
+            });
+          }
+        })
+        .catch((err) => {
+          if (err.response !== undefined && err.response.status === 400)
+            toast(err.response.data.message);
+        });
+    }
+  };
+
   componentDidMount = async () => {
     this.getCategories();
     this.getUsers();
+    this.getExpenses();
   };
 
   leftCheckHandler = (event, data) => {
@@ -113,7 +141,6 @@ class ManageExpenses extends Component {
         }
       });
       if (!isDataPresentInRightSide) {
-        console.log(data);
         userLeftSide.push(data);
       }
     });
@@ -129,7 +156,6 @@ class ManageExpenses extends Component {
       userRightDataInternal.push(dataValue);
     });
     this.setState({ userRightData: userRightDataInternal });
-    console.log(this.state.userRightData);
   };
 
   rightClickHandler = () => {
@@ -157,66 +183,186 @@ class ManageExpenses extends Component {
   };
 
   submitHandler = async () => {
-    console.log(this.state.isDefaultExpense);
     let isAuthorised = await isAuthorized();
     if (isAuthorised) {
-      let spentToValue = [];
-      if (this.state.userRightData.length > 0) {
-        this.state.userRightData.map((data) => {
-          spentToValue.push(data.id);
-        });
+      if (this.state.IsAdd) {
+        let spentToValue = [];
+        if (this.state.userRightData.length > 0) {
+          this.state.userRightData.map((data) => {
+            spentToValue.push(data.id);
+          });
+        }
+        let expenseDetails = {
+          spentBy: this.state.SpentBy,
+          spentTo: spentToValue,
+          expenseName: this.state.ExpenseName,
+          expenseDescription: this.state.Description,
+          defaultExpense: this.state.isDefaultExpense,
+          amount: this.state.Amount,
+        };
+        await Axios.post(
+          config.urls.EXPENSE_SERVICE + "createExpense",
+          expenseDetails
+        )
+          .then((res) => {
+            if (res.data !== null || res.data !== undefined) {
+              if (res.data._id !== " " && res.data._id !== undefined) {
+                this.setState({
+                  SpentBy: "0",
+                  userRightData: [],
+                  ExpenseName: "",
+                  Description: "",
+                  Category: "",
+                  Amount: "0",
+                  IsAdd: true,
+                  UserButtonValue: "Add Expense"
+                });
+                this.getUsers();
+                toast("Expense added successfully");
+              } else {
+                toast("Error in saving the user");
+              }
+            }
+          })
+          .catch((err) => {
+            if (err.response.status === 400) {
+              toast(err.response.data.message);
+            }
+          });
+      } else {
+        
+        let spentToValue = [];
+        if (this.state.userRightData.length > 0) {
+          this.state.userRightData.map((data) => {
+            spentToValue.push(data.id);
+          });
+        }
+        let expenseDetails = {
+          _id: this.state._id,
+          spentBy: this.state.SpentBy,
+          spentTo: spentToValue,
+          expenseName: this.state.ExpenseName,
+          expenseDescription: this.state.Description,
+          defaultExpense: this.state.isDefaultExpense,
+          amount: this.state.Amount
+        };
+        await Axios.put(
+          config.urls.EXPENSE_SERVICE + "updateExpense",
+          expenseDetails
+        )
+          .then((res) => {
+            if (res.data !== null || res.data !== undefined) {
+              if (res.data._id !== " " && res.data._id !== undefined) {
+                this.setState({
+                  SpentBy: "0",
+                  userRightData: [],
+                  ExpenseName: "",
+                  Description: "",
+                  Category: "",
+                  Amount: "0",
+                  IsAddUser: false,
+                  UserButtonValue: "Add User",
+                  IsAdd: true
+                });
+                toast("Expense updated successfully");
+              } else {
+                toast("Error in updating the Expense");
+              }
+            }
+          })
+          .catch((err) => {
+            if (err.response.status === 400) {
+              toast(err.response.data.message);
+            }
+          });
       }
-      let expenseDetails = {
-        spentBy: this.state.SpentBy,
-        spentTo: spentToValue,
-        expenseName: this.state.ExpenseName,
-        expenseDescription: this.state.Description,
-        defaultExpense: this.state.isDefaultExpense,
-        amount: this.state.Amount,
-      };
-      console.log(expenseDetails);
-      await Axios.post(
-        config.urls.EXPENSE_SERVICE + "createExpense",
-        expenseDetails
+    }
+  };
+
+  defaultExpenseHandler = () => {
+    if (this.state.isDefaultExpense === true) {
+      this.setState({ isDefaultExpense: false });
+    } else {
+      this.setState({ isDefaultExpense: true });
+    }
+  };
+
+  onEditClickHandler = async (data) => {
+    let isAuthorised = await isAuthorized();
+    if (isAuthorised) {
+      await Axios.get(
+        config.urls.EXPENSE_SERVICE + "getExpense?_id=" + data._id
       )
         .then((res) => {
-          console.log(res.data);
-          if (res.data !== null || res.data !== undefined) {
-            if (res.data._id !== " " && res.data._id !== undefined) {
-              this.setState({
-                SpentBy: "0",
-                userRightData: [],
-                ExpenseName: "",
-                Description: "",
-                Category: "",
-                Amount: "0",
+          if (res.data !== undefined || res.data !== null) {
+            this.setState({
+              ExpenseName: res.data.expenseName,
+              _id: res.data._id,
+              Description: res.data.expenseDescription,
+              isDefaultExpense: res.data.defaultExpense,
+              SpentBy: res.data.spentBy,
+              Amount: res.data.amount,
+              IsAddUser: true,
+              UserButtonValue: "View Expense",
+              IsAdd: false,
+            });
+            let userLeftDataValue = [];
+            let userRightDataValue = [];
+            res.data.spentTo.map((data) => {
+              this.state.userData.map((user) => {
+                if (user.id === data) {
+                  let isUserinRightData = false;
+                  userRightDataValue.map((s) => {
+                    if (s.id === user.id) return (isUserinRightData = true);
+                  });
+                  if (!isUserinRightData) userRightDataValue.push(user);
+                }
               });
-              this.getUsers();
-              toast("Expense added successfully");
-            } else {
-              toast("Error in saving the user");
-            }
+            });
+            this.setState({
+              userRightData: userRightDataValue,
+            });
+            this.state.userData.map((user) => {
+              let isUserinLeftData = false;
+              userRightDataValue.map((s) => {
+                if (s.id === user.id) return (isUserinLeftData = true);
+              });
+              if (!isUserinLeftData) {
+                userLeftDataValue.push(user);
+              }
+            });
+            this.setState({
+              userLeftData: userLeftDataValue,
+            });
           }
         })
         .catch((err) => {
-          if (err.response.status === 400) {
+          if (err.response !== undefined && err.response.status === 400)
             toast(err.response.data.message);
-          }
+          //else
+          // this.props.history.push('/Error');
         });
-     }
+    }
   };
-  
-  defaultExpenseHandler = () => {
-    if(this.state.isDefaultExpense === true)
-    {
-      this.setState({isDefaultExpense: false});
-    }
-    else
-    {
-      this.setState({isDefaultExpense: true});
-    }
-  }
+
+  onDeleteClickHandler = (data) => {
+    
+  };
+
+  addHandler = () => {
+    if (!this.state.IsAddUser)
+      this.setState({ IsAddUser: true, UserButtonValue: "View Expense" });
+    else this.setState({ IsAddUser: false, UserButtonValue: "Add Expense" });
+  };
+
   render() {
+    let formAdd;
+    let headerValuesForGrid = [
+      "Expense Name",
+      "Description",
+      "Spent By",
+      "Amount",
+    ];
     let checkLeftSide = [];
     let checkRightSide = [];
     if (this.state.userLeftData.length > 0) {
@@ -246,6 +392,152 @@ class ManageExpenses extends Component {
         );
       });
     }
+    if (this.state.IsAddUser) {
+      formAdd = (
+        <form role="form">
+          <div className="card-body">
+            <div className="row ">
+              <div className="col-md-6">
+                <Label value="Expense Name" />
+                <Textbox
+                  typeName="text"
+                  classValue="form-control"
+                  placeholderName="Expense Name"
+                  changed={(event) =>
+                    this.setState({ ExpenseName: event.target.value })
+                  }
+                  value={this.state.ExpenseName}
+                />
+              </div>
+              <div className="col-md-6">
+                <Label value="Description" />
+                <Textbox
+                  typeName="text"
+                  classValue="form-control"
+                  placeholderName="Description"
+                  changed={(event) =>
+                    this.setState({ Description: event.target.value })
+                  }
+                  value={this.state.Description}
+                />
+              </div>
+            </div>
+            <br></br>
+            <div className="row">
+              <div className="col-md-6">
+                <Label value="Spent By" />
+                <DropDown
+                  classValue="form-control"
+                  dropDownData={this.state.spentByUserData}
+                  property="User"
+                  selectedValue={this.state.SpentBy}
+                  changedHandler={(event) => {
+                    this.setState({ SpentBy: event.target.value });
+                  }}
+                />
+              </div>
+              <div className="col-md-6">
+                <Label value="Amount" />
+                <Textbox
+                  typeName="number"
+                  classValue="form-control"
+                  placeholderName="Amount"
+                  changed={(event) =>
+                    this.setState({ Amount: event.target.value })
+                  }
+                  value={this.state.Amount}
+                />
+              </div>
+            </div>
+            <br></br>
+            <div className="row">
+              <div className="col-md-6">
+                <Checkbox
+                  idValue="isDefaultExpense"
+                  value={this.state.isDefaultExpense}
+                  valueInCheck={this.state.isDefaultExpense}
+                  changeHandler={(data) => this.defaultExpenseHandler(this)}
+                  checkedValue={this.state.isDefaultExpense ? "checked" : ""}
+                  labelValue="Is Default Expense"
+                />
+              </div>
+            </div>
+            <br></br>
+            <Label value="Spent To (Right Side value will be added)" />
+            <div className="row">
+              <div className="col-md-5 divBody">{checkLeftSide}</div>
+              <div className="col-md-1">
+                <div className="row">
+                  <Button
+                    typeName="button"
+                    classValue="btn btn-block btn-secondary buttonCenter"
+                    value=">>"
+                    click={this.leftClickHandler}
+                  />
+                </div>
+                <br></br>
+                <div className="row">
+                  <Button
+                    typeName="button"
+                    classValue="btn btn-block btn-secondary buttonCenter"
+                    value="<<"
+                    click={this.rightClickHandler}
+                  />
+                </div>
+              </div>
+              <div className="col-md-5 divBody">
+                {checkRightSide}
+                <br></br>
+              </div>
+            </div>
+          </div>
+          <br></br>
+          <div className="card-footer">
+            <Button
+              typeName="submit"
+              classValue="btn btn-primary"
+              value="Submit"
+              click={this.submitHandler}
+            />
+          </div>
+        </form>
+      );
+    } else {
+      formAdd = (
+        <div className="row">
+          <div className="col-12">
+            <div className="col-12">
+              <br></br>
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title">
+                    {this.state.headerDataViewData}
+                  </h3>
+                </div>
+                <div className="card-body table-responsive p-0 CardBodyHeightInGrid">
+                  <table className="table table-head-fixed text-nowrap">
+                    <TableHeader
+                      headerValues={headerValuesForGrid}
+                      isActionButtonEnabled="true"
+                    />
+                    <TableBody
+                      tableData={this.state.expenseData}
+                      tableValue="Manage Expense"
+                      editClicked={(data) => {
+                        this.onEditClickHandler(data);
+                      }}
+                      deleteClicked={(data) => {
+                        this.onDeleteClickHandler(data);
+                      }}
+                    />
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div>
@@ -259,122 +551,18 @@ class ManageExpenses extends Component {
               <div className="card card-primary">
                 <CardHeader headerValue={this.state.headerData} />
                 <br></br>
-                <div className="col-md-12">
-                  <div className="row ">
-                    <div className="col-md-6">
-                      <Label value="Expense Name" />
-                      <Textbox
-                        typeName="text"
-                        classValue="form-control"
-                        placeholderName="Expense Name"
-                        changed={(event) =>
-                          this.setState({ ExpenseName: event.target.value })
-                        }
-                        value={this.state.ExpenseName}
-                      />
-                    </div>
-                    <div className="col-md-6">
-                      <Label value="Description" />
-                      <Textbox
-                        typeName="text"
-                        classValue="form-control"
-                        placeholderName="Description"
-                        changed={(event) =>
-                          this.setState({ Description: event.target.value })
-                        }
-                        value={this.state.Description}
-                      />
-                    </div>
-                  </div>
-                  <br></br>
-                  <div className="row">
-                    <div className="col-md-6">
-                      {/* <Label value="Category" />
-                      <DropDown
-                        classValue="form-control"
-                        dropDownData={this.state.categoryData}
-                        property="Category"
-                        selectedValue={this.state.Category}
-                        changedHandler={(event) => {
-                          this.setState({ Category: event.target.value });
-                        }}
-                      /> */}
-                      <Label value="Spent By" />
-                      <DropDown
-                        classValue="form-control"
-                        dropDownData={this.state.spentByUserData}
-                        property="User"
-                        selectedValue={this.props.SpentBy}
-                        changedHandler={(event) => {
-                          console.log(event.target);
-                          debugger;
-                          this.setState({ SpentBy: event.target.value });
-                        }}
-                      />
-                    </div>
-                    <div className="col-md-6">
-                      <Label value="Amount" />
-                      <Textbox
-                        typeName="number"
-                        classValue="form-control"
-                        placeholderName="Amount"
-                        changed={(event) =>
-                          this.setState({ Amount: event.target.value })
-                        }
-                        value={this.state.Amount}
-                      />
-                    </div>
-                  </div>
-                  <br></br>
-                  <div className="row">
-                    <div className="col-md-6">
-                      <Checkbox
-                        idValue="isDefaultExpense"
-                        value={this.state.isDefaultExpense}
-                        changeHandler = {(data) => this.defaultExpenseHandler(this)}
-                        checked = {this.state.isDefaultExpense}
-                        labelValue= "Is Default Expense"
-                      />
-                    </div>
-                  </div>
-                  <br></br>
-                  <Label value="Spent by (Right Side value will be added)" />
-                  <div className="row">
-                    <div className="col-md-5 divBody">{checkLeftSide}</div>
-                    <div className="col-md-1">
-                      <div className="row">
-                        <Button
-                          typeName="button"
-                          classValue="btn btn-block btn-secondary buttonCenter"
-                          value=">>"
-                          click={this.leftClickHandler}
-                        />
-                      </div>
-                      <br></br>
-                      <div className="row">
-                        <Button
-                          typeName="button"
-                          classValue="btn btn-block btn-secondary buttonCenter"
-                          value="<<"
-                          click={this.rightClickHandler}
-                        />
-                      </div>
-                    </div>
-                    <div className="col-md-5 divBody">
-                      {checkRightSide}
-                      <br></br>
-                    </div>
+                <div className="row">
+                  <div className="col-md-10"></div>
+                  <div className="col-md-2 float-right">
+                    <Button
+                      typeName="button"
+                      classValue="btn btn-primary"
+                      value={this.state.UserButtonValue}
+                      click={this.addHandler}
+                    />
                   </div>
                 </div>
-                <br></br>
-                <div className="card-footer">
-                  <Button
-                    typeName="submit"
-                    classValue="btn btn-primary"
-                    value="Submit"
-                    click={this.submitHandler}
-                  />
-                </div>
+                {formAdd}
               </div>
             </div>
           </section>

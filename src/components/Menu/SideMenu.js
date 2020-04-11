@@ -14,7 +14,7 @@ class SideMenu extends Component{
             localStorage.setItem("userAuth", JSON.stringify(res.data));
            })
            .catch((err) => {
-             console.log(err.response);
+             throw err;
            })
   }
 
@@ -29,7 +29,7 @@ class SideMenu extends Component{
               userAuth = { "refresh_token" : JSON.parse(localStorage.getItem("userAuth")).refresh_token};
             }})
         .catch((err) => {
-          console.log(err.response);
+          throw err;
         });
   }
 
