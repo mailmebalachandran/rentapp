@@ -11,12 +11,16 @@ class TableHeader extends Component {
             })
         }
         let actionButtonHeader =[];
-        if(this.props.isActionButtonEnabled){
+        
+        if(this.props.isActionButtonEnabled === true){
+            console.log("Hitted");
             actionButtonHeader.push(<th key="Edit"></th>);
             actionButtonHeader.push(<th key="Delete"></th>);
         }
         else
-        actionButtonHeader = "";
+        {
+        actionButtonHeader = [];
+        }
 
         return(
             <thead>

@@ -8,7 +8,7 @@ import './assets/css/bootstrap-duallistbox.min.css';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
-    <App />,
+    <div><App /></div>,
   document.getElementById('root')
 );
 

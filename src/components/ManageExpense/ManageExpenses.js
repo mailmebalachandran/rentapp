@@ -15,9 +15,9 @@ import Label from "../common/Label";
 import CardHeader from "../common/CardHeader";
 import DropDown from "../common/DropDown";
 import Checkbox from "../common/Checkbox";
-import RadioButton from "../common/RadioButton";
 import TableHeader from "../common/TableHeader";
 import TableBody from "../common/TableBody";
+import LoadingIndicator from "../common/LoadingIndicator";
 
 class ManageExpenses extends Component {
   state = {
@@ -38,7 +38,8 @@ class ManageExpenses extends Component {
     UserButtonValue: "Add Expense",
     headerDataViewData: "Expense Details",
     expenseData: [],
-    IsAdd: true
+    IsAdd: true,
+    IsLoaded: false,
   };
   getCategories = async () => {
     let isAuthorised = await isAuthorized();
@@ -96,6 +97,7 @@ class ManageExpenses extends Component {
           if (res.data !== null || res.data !== undefined) {
             this.setState({
               expenseData: res.data,
+              IsLoaded: true,
             });
           }
         })
@@ -210,12 +212,13 @@ class ManageExpenses extends Component {
                 this.setState({
                   SpentBy: "0",
                   userRightData: [],
+                  userLeftData: [],
                   ExpenseName: "",
                   Description: "",
                   Category: "",
                   Amount: "0",
                   IsAdd: true,
-                  UserButtonValue: "Add Expense"
+                  UserButtonValue: "Add Expense",
                 });
                 this.getUsers();
                 toast("Expense added successfully");
@@ -230,7 +233,6 @@ class ManageExpenses extends Component {
             }
           });
       } else {
-        
         let spentToValue = [];
         if (this.state.userRightData.length > 0) {
           this.state.userRightData.map((data) => {
@@ -244,7 +246,7 @@ class ManageExpenses extends Component {
           expenseName: this.state.ExpenseName,
           expenseDescription: this.state.Description,
           defaultExpense: this.state.isDefaultExpense,
-          amount: this.state.Amount
+          amount: this.state.Amount,
         };
         await Axios.put(
           config.urls.EXPENSE_SERVICE + "updateExpense",
@@ -256,13 +258,15 @@ class ManageExpenses extends Component {
                 this.setState({
                   SpentBy: "0",
                   userRightData: [],
+                  userLeftData: [],
                   ExpenseName: "",
                   Description: "",
                   Category: "",
                   Amount: "0",
                   IsAddUser: false,
                   UserButtonValue: "Add User",
-                  IsAdd: true
+                  IsAdd: true,
+                  _id: ""
                 });
                 toast("Expense updated successfully");
               } else {
@@ -345,14 +349,67 @@ class ManageExpenses extends Component {
     }
   };
 
-  onDeleteClickHandler = (data) => {
-    
+  onDeleteClickHandler = async (data) => {
+    let isAuthorised = await isAuthorized();
+    if (isAuthorised) {
+      await Axios.delete(
+        config.urls.EXPENSE_SERVICE + "deleteExpense?id=" + data._id
+      )
+        .then((res) => {
+          if (res.data !== null || res.data !== undefined) {
+            if (
+              res.data.message !== " " &&
+              res.data.message !== undefined &&
+              res.data.message.toString().toLowerCase() ===
+                "deleted successfully"
+            ) {
+              this.setState({
+                IsAddUser: false,
+                UserButtonValue: "Add Expense",
+                _id: "",
+                SpentBy: "",
+                userLeftData: [],
+                userRightData: [],
+                Description: "",
+                isDefaultExpense: false,
+                ExpenseName: "",
+                Amount: "0",
+                IsAdd: true,
+              });
+              this.getExpenses();
+              toast(res.data.message);
+            } else {
+              toast("Error in deleting the user");
+            }
+          }
+        })
+        .catch((err) => {
+          if (err.response.status === 400) {
+            toast(err.response.data.message);
+          }
+        });
+    }
   };
 
   addHandler = () => {
-    if (!this.state.IsAddUser)
-      this.setState({ IsAddUser: true, UserButtonValue: "View Expense" });
-    else this.setState({ IsAddUser: false, UserButtonValue: "Add Expense" });
+    if (!this.state.IsAddUser) {
+      this.setState({
+        SpentBy: "0",
+        userRightData: [],
+        userLeftData: [],
+        ExpenseName: "",
+        Description: "",
+        Category: "",
+        Amount: "0",
+        IsAddUser: true,
+        UserButtonValue: "View Expense",
+        IsAdd: true,
+        _id: ""
+      });
+      this.getUsers();
+    } else {
+      this.setState({ IsAddUser: false, UserButtonValue: "Add Expense" });
+    }
   };
 
   render() {
@@ -392,6 +449,25 @@ class ManageExpenses extends Component {
         );
       });
     }
+
+    let loadedValue;
+    if (this.state.IsLoaded) {
+      loadedValue = (
+        <TableBody
+          tableData={this.state.expenseData}
+          tableValue="Manage Expense"
+          editClicked={(data) => {
+            this.onEditClickHandler(data);
+          }}
+          deleteClicked={(data) => {
+            this.onDeleteClickHandler(data);
+          }}
+        />
+      );
+    } else {
+      loadedValue = <LoadingIndicator />;
+    }
+
     if (this.state.IsAddUser) {
       formAdd = (
         <form role="form">
@@ -520,16 +596,7 @@ class ManageExpenses extends Component {
                       headerValues={headerValuesForGrid}
                       isActionButtonEnabled="true"
                     />
-                    <TableBody
-                      tableData={this.state.expenseData}
-                      tableValue="Manage Expense"
-                      editClicked={(data) => {
-                        this.onEditClickHandler(data);
-                      }}
-                      deleteClicked={(data) => {
-                        this.onDeleteClickHandler(data);
-                      }}
-                    />
+                    {loadedValue}
                   </table>
                 </div>
               </div>

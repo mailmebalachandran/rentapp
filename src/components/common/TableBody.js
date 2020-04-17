@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 import Button from "./Button";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
 
 class TableBody extends Component {
   render() {
@@ -36,8 +38,7 @@ class TableBody extends Component {
             </tr>
           );
         });
-      }
-      else if(this.props.tableValue === "Manage Expense"){
+      } else if (this.props.tableValue === "Manage Expense") {
         this.props.tableData.map((data) => {
           tableValues.push(
             <tr>
@@ -68,6 +69,25 @@ class TableBody extends Component {
             </tr>
           );
         });
+      } else if (this.props.tableValue === "Dashboard") {
+        if (this.props.tableData.length > 0) {
+          this.props.tableData.map((data) => {
+            tableValues.push(
+              <tr>
+                <td>{data.UserName}</td>
+                <td>{data.TotalAmount}</td>
+                <td>
+                  <a href="#" className="text-muted">
+                    <FontAwesomeIcon icon={faSearch} />
+                  </a>
+                </td>
+              </tr>
+            );
+          });
+        }
+        else{
+          tableValues.push(<tr><td colspan="3">No Data Found</td></tr>)
+        }
       }
     }
     return <tbody>{tableValues}</tbody>;

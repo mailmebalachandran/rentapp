@@ -15,6 +15,7 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import TableHeader from "../common/TableHeader";
 import TableBody from "../common/TableBody";
 import { isAuthorized } from "../../utils";
+import LoadingIndicator from '../common/LoadingIndicator';
 
 class ManageUsers extends Component {
   constructor(props) {
@@ -35,6 +36,7 @@ class ManageUsers extends Component {
       headerDataViewData: "Users List",
       UserData: [],
       IsAdd: true,
+      IsLoaded: false
     };
   }
 
@@ -49,7 +51,7 @@ class ManageUsers extends Component {
         "bearer " + userAuth.access_token;
       await Axios.get(config.urls.USER_SERVICE + "getUsers")
         .then((res) => {
-          this.setState({ userData: res.data });
+          this.setState({ userData: res.data, IsLoaded: true });
         })
         .catch((err) => {
           if (err.response !== undefined && err.response.status === 400)
@@ -249,6 +251,23 @@ class ManageUsers extends Component {
 
   render() {
     let formAdd;
+    let loadedValue;
+    if(this.state.IsLoaded){
+      loadedValue = <TableBody
+      tableData={this.state.userData}
+      tableValue="Manage User"
+      editClicked={(data) => {
+        this.onEditClickHandler(data);
+      }}
+      deleteClicked={(data) => {
+        this.onDeleteClickHandler(data);
+      }}
+    />
+    }
+    else{
+      loadedValue = <LoadingIndicator />
+    }
+
     let headerValuesForGrid = ["Name", "Phone Number", "Email Id", "UserName"];
     if (this.state.IsAddUser) {
       formAdd = (
@@ -421,16 +440,7 @@ class ManageUsers extends Component {
                       headerValues={headerValuesForGrid}
                       isActionButtonEnabled="true"
                     />
-                    <TableBody
-                      tableData={this.state.userData}
-                      tableValue="Manage User"
-                      editClicked={(data) => {
-                        this.onEditClickHandler(data);
-                      }}
-                      deleteClicked={(data) => {
-                        this.onDeleteClickHandler(data);
-                      }}
-                    />
+                    {loadedValue}
                   </table>
                 </div>
               </div>

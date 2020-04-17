@@ -66,7 +66,6 @@ class SideMenu extends Component{
         <ul className="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           <li className="nav-item">
             <Link to='/ManageUsers' className="nav-link">
-              <i className="nav-icon fas fa-th"></i>
               <p>
                 Manage Users
               </p>
@@ -74,7 +73,6 @@ class SideMenu extends Component{
           </li>
           <li className="nav-item">
             <Link to="/ManageExpenses" className="nav-link">
-              <i className="nav-icon fas fa-calendar-alt"></i>
               <p>
                 Manage Expenses
               </p>
@@ -82,7 +80,6 @@ class SideMenu extends Component{
           </li>
           <li className="nav-item">
             <Link to='/' className="nav-link">
-              <i className="nav-icon far fa-image"></i>
               <p>
                 Logout
               </p>
